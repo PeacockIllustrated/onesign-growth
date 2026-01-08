@@ -8,22 +8,36 @@ export default async function AdminLeadsPage() {
 
     const supabase = await createServerClient();
 
-    const { data: leads, error } = await supabase
+    // Fetch marketing leads (from growth section)
+    const { data: marketingLeads, error: marketingError } = await supabase
         .from('marketing_leads')
         .select('*')
         .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error('Error fetching leads:', error);
+    if (marketingError) {
+        console.error('Error fetching marketing leads:', marketingError);
+    }
+
+    // Fetch architect leads (from architects section)
+    const { data: architectLeads, error: architectError } = await supabase
+        .from('architect_leads')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (architectError) {
+        console.error('Error fetching architect leads:', architectError);
     }
 
     return (
         <div>
             <PageHeader
                 title="Leads"
-                description="Manage enquiries from the growth wizard"
+                description="Manage enquiries from both Growth and Architects sections"
             />
-            <LeadsClient initialLeads={leads || []} />
+            <LeadsClient
+                initialMarketingLeads={marketingLeads || []}
+                initialArchitectLeads={architectLeads || []}
+            />
         </div>
     );
 }
