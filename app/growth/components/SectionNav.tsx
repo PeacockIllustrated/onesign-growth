@@ -9,7 +9,6 @@ const navItems = [
     { label: 'Overview', href: '/growth' },
     { label: 'Packages', href: '/growth/packages' },
     { label: 'Accelerators', href: '/growth/accelerators' },
-    { label: 'For Architects', href: '/architects' },
     { label: 'Enquire', href: '/growth/enquire' },
 ];
 
