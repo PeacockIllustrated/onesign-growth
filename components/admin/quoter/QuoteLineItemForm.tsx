@@ -18,7 +18,7 @@ import {
     RateCard,
     OVERRIDE_REASON_CODES
 } from '@/lib/quoter/types';
-import { recalculatePanelLettersV1Action, addQuoteItemAction } from '@/lib/quoter/actions';
+import { recalculatePanelLettersV1Action, addQuoteItemAction, updateQuoteItemAction } from '@/lib/quoter/actions';
 import { LetterSetFields } from './LetterSetFields';
 import { QuoteSummary } from './QuoteSummary';
 
@@ -32,6 +32,8 @@ interface QuoteLineItemFormProps {
     };
     onSuccess: () => void;
     onCancel: () => void;
+    initialValues?: PanelLettersV1Input;
+    itemId?: string;
 }
 
 const PANEL_SIZES = ['2.4 x 1.2', '3 x 1.5'] as const;
@@ -60,7 +62,10 @@ export function QuoteLineItemForm({
     rateCard,
     onSuccess,
     onCancel,
+    initialValues,
+    itemId,
 }: QuoteLineItemFormProps) {
+    const isEditMode = !!itemId && !!initialValues;
     const [output, setOutput] = useState<PanelLettersV1Output | null>(null);
     const [isCalculating, setIsCalculating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -69,7 +74,7 @@ export function QuoteLineItemForm({
 
     const form = useForm<PanelLettersV1Input>({
         resolver: zodResolver(panelLettersV1InputSchema),
-        defaultValues: {
+        defaultValues: initialValues || {
             ...defaultValues,
             panel_material: rateCard.panelMaterials[0] || 'Aluminium 2.5mm',
             panel_finish: rateCard.panelFinishes[0] || 'Powder Coating',
@@ -126,7 +131,9 @@ export function QuoteLineItemForm({
         };
 
         try {
-            const result = await addQuoteItemAction(quoteId, finalInput);
+            const result = isEditMode
+                ? await updateQuoteItemAction(quoteId, itemId, finalInput)
+                : await addQuoteItemAction(quoteId, finalInput);
 
             if ('error' in result) {
                 setSaveError(result.error);
@@ -499,7 +506,7 @@ export function QuoteLineItemForm({
                     className="px-4 py-2 text-sm font-medium bg-black text-white rounded-[var(--radius-sm)] hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     {isSaving && <Loader2 size={14} className="animate-spin" />}
-                    Add Line Item
+                    {isEditMode ? 'Update Line Item' : 'Add Line Item'}
                 </button>
             </div>
         </form>

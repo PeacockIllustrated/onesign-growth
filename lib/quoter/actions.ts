@@ -13,7 +13,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getRateCardForPricingSet } from './rate-card';
 import { calculatePanelLettersV1 } from './engine/panel-letters-v1';
-import { PanelLettersV1Input, Quote, QuoteItem } from './types';
+import { PanelLettersV1Input, Quote, QuoteItem, PanelLettersV1Output } from './types';
 
 // =============================================================================
 // QUOTE ACTIONS
@@ -24,6 +24,14 @@ export interface CreateQuoteInput {
     customer_email?: string;
     customer_phone?: string;
     pricing_set_id: string;
+}
+
+export interface UpdateQuoteInput {
+    id: string;
+    customer_name?: string;
+    customer_email?: string;
+    customer_phone?: string;
+    notes_internal?: string;
 }
 
 export async function createQuoteAction(input: CreateQuoteInput): Promise<{ id: string } | { error: string }> {
@@ -54,6 +62,51 @@ export async function createQuoteAction(input: CreateQuoteInput): Promise<{ id: 
 
     revalidatePath('/app/admin/quotes');
     return { id: data.id };
+}
+
+export async function updateQuoteAction(input: UpdateQuoteInput): Promise<{ success: boolean } | { error: string }> {
+    const user = await getUser();
+    if (!user) return { error: 'Not authenticated' };
+
+    const supabase = await createServerClient();
+
+    // Get original for audit
+    const { data: original } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('id', input.id)
+        .single();
+
+    const { error } = await supabase
+        .from('quotes')
+        .update({
+            customer_name: input.customer_name,
+            customer_email: input.customer_email,
+            customer_phone: input.customer_phone,
+            notes_internal: input.notes_internal,
+            updated_at: new Date().toISOString(),
+        })
+        .eq('id', input.id);
+
+    if (error) {
+        console.error('Error updating quote:', error);
+        return { error: error.message };
+    }
+
+    // Log audit
+    await logQuoteAudit(supabase, {
+        quote_id: input.id,
+        user_id: user.id,
+        user_email: user.email!,
+        action: 'update_quote',
+        summary: 'Updated customer details',
+        old_data: original,
+        new_data: input,
+    });
+
+    revalidatePath(`/app/admin/quotes/${input.id}`);
+    revalidatePath('/app/admin/quotes');
+    return { success: true };
 }
 
 export async function updateQuoteStatusAction(
@@ -192,6 +245,76 @@ export async function addQuoteItemAction(
 
     revalidatePath(`/app/admin/quotes/${quoteId}`);
     return { id: data.id };
+}
+
+/**
+ * Update a panel letters v1 line item.
+ */
+export async function updateQuoteItemAction(
+    quoteId: string,
+    itemId: string,
+    input: PanelLettersV1Input
+): Promise<{ success: boolean } | { error: string; errors?: string[] }> {
+    const user = await getUser();
+    if (!user) return { error: 'Not authenticated' };
+
+    const supabase = await createServerClient();
+
+    // Get original for audit
+    const { data: original } = await supabase
+        .from('quote_items')
+        .select('*')
+        .eq('id', itemId)
+        .single();
+
+    // Get the quote to find its pricing_set_id
+    const { data: quote, error: quoteError } = await supabase
+        .from('quotes')
+        .select('pricing_set_id')
+        .eq('id', quoteId)
+        .single();
+
+    if (quoteError || !quote) {
+        return { error: 'Quote not found' };
+    }
+
+    // Recalculate server-side
+    const rateCard = await getRateCardForPricingSet(quote.pricing_set_id);
+    const output = calculatePanelLettersV1(input, rateCard);
+
+    if (!output.ok) {
+        return { error: 'Validation failed', errors: output.errors };
+    }
+
+    // Update the line item
+    const { error } = await supabase
+        .from('quote_items')
+        .update({
+            input_json: input,
+            output_json: output,
+            line_total_pence: output.line_total_pence,
+        })
+        .eq('id', itemId)
+        .eq('quote_id', quoteId);
+
+    if (error) {
+        console.error('Error updating quote item:', error);
+        return { error: error.message };
+    }
+
+    // Log audit
+    await logQuoteAudit(supabase, {
+        quote_id: quoteId,
+        user_id: user.id,
+        user_email: user.email!,
+        action: 'update_item',
+        summary: `Updated item: ${output.ok ? 'Recalculated total £' + (output.line_total_pence / 100).toFixed(2) : 'Failed recalculation'}`,
+        old_data: original,
+        new_data: { input, output },
+    });
+
+    revalidatePath(`/app/admin/quotes/${quoteId}`);
+    return { success: true };
 }
 
 /**
@@ -419,4 +542,26 @@ export async function duplicateQuoteItemAction(
 
     revalidatePath(`/app/admin/quotes/${quoteId}`);
     return { id: newItem.id };
+}
+
+// =============================================================================
+// AUDIT HELPERS
+// =============================================================================
+
+async function logQuoteAudit(supabase: any, audit: {
+    quote_id: string;
+    user_id: string;
+    user_email: string;
+    action: string;
+    summary: string;
+    old_data?: any;
+    new_data?: any;
+}) {
+    const { error } = await supabase
+        .from('quote_audits')
+        .insert(audit);
+
+    if (error) {
+        console.error('Error logging quote audit:', error);
+    }
 }
