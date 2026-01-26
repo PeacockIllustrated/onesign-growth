@@ -17,6 +17,7 @@ import {
     Zap,
     Calculator,
     DollarSign,
+    Palette,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -42,6 +43,7 @@ const adminSubItems = [
     { label: 'Deliverables', href: '/app/admin/deliverables', icon: Zap },
     { label: 'Quotes', href: '/app/admin/quotes', icon: Calculator },
     { label: 'Pricing', href: '/app/admin/pricing', icon: DollarSign },
+    { label: 'Design Packs', href: '/app/admin/design-packs', icon: Palette },
 ];
 
 export function Sidebar({ isAdmin }: SidebarProps) {

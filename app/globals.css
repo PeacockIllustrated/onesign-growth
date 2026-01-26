@@ -172,3 +172,13 @@
   color: #262626;
   border: 1px solid #e5e5e5;
 }
+/* Presentation Mode Animation */
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 5s ease-out forwards;
+}

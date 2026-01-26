@@ -1,6 +1,6 @@
 import { requireAdmin, isSuperAdmin } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
-import { PageHeader, Card, Chip } from '../../../components/ui';
+import { PageHeader, Card, Chip } from '@/app/app/components/ui';
 import Link from 'next/link';
 import { ArrowLeft, Zap } from 'lucide-react';
 import { getPricingSetWithRateCards } from '@/lib/quoter/pricing-actions';

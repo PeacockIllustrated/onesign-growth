@@ -1,7 +1,7 @@
 import { requireAdmin, isSuperAdmin } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase-server';
-import { PageHeader, Card, Chip } from '../../../../components/ui';
+import { PageHeader, Card, Chip } from '@/app/app/components/ui';
 import Link from 'next/link';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { checkPricingSetCompletenessAction } from '@/lib/quoter/pricing-actions';
