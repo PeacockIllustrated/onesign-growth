@@ -297,11 +297,13 @@ export default async function ArtworkCompliancePrintPage({
                     min-height: 4mm;
                 }
 
-                /* --- Right: Notes area --- */
+                /* --- Right: Notes area (collapses when space is tight) --- */
 
                 .notes-area {
                     margin-top: 2mm;
-                    flex-shrink: 0;
+                    flex: 1 1 0;
+                    min-height: 0;
+                    overflow: hidden;
                 }
 
                 .notes-area .notes-lines {
@@ -350,6 +352,55 @@ export default async function ArtworkCompliancePrintPage({
                     letter-spacing: 0.05em;
                     color: #555;
                     margin-bottom: 1mm;
+                }
+
+                /* --- Multi-item compact grid (side-by-side) --- */
+
+                .items-grid {
+                    display: grid;
+                    gap: 1.5mm;
+                }
+                .items-grid-2 { grid-template-columns: 1fr 1fr; }
+                .items-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+                .items-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+                .item-cell {
+                    border: 1px solid #ddd;
+                    padding: 1.5mm;
+                    font-size: 8px;
+                }
+
+                .item-cell-label {
+                    font-size: 7px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    margin-bottom: 1mm;
+                }
+
+                .item-cell .measurement-row {
+                    font-size: 8px;
+                    padding: 0.5mm 0;
+                }
+
+                .item-cell .measurement-field {
+                    width: 16mm;
+                    height: 3.5mm;
+                }
+
+                /* Compact dimension check grid */
+
+                .dim-check-grid .item-cell {
+                    background: #fafafa;
+                }
+
+                .dim-check-grid .measurement-row {
+                    font-size: 7px;
+                    padding: 0.3mm 0;
+                }
+
+                .dim-check-grid .measurement-field {
+                    width: 12mm;
+                    height: 3mm;
                 }
 
                 /* --- Design notes (clamped) --- */
@@ -548,24 +599,39 @@ export default async function ArtworkCompliancePrintPage({
 
                     {/* Measured Dimensions */}
                     <div className="section-title">measured dimensions</div>
-                    {hasExtraItems && (
-                        <div style={{ fontSize: '8px', fontWeight: 700, marginBottom: '1mm' }}>item A</div>
-                    )}
-                    <div className="measurement-row">
-                        <span>width:</span>
-                        <span className="measurement-field" />
-                        <span>mm</span>
-                    </div>
-                    <div className="measurement-row">
-                        <span>height:</span>
-                        <span className="measurement-field" />
-                        <span>mm</span>
-                    </div>
-                    {extraItems.map(item => (
-                        <div key={item.id}>
-                            <div style={{ fontSize: '8px', fontWeight: 700, marginTop: '2mm', marginBottom: '1mm' }}>
-                                item {item.label}
+                    {hasExtraItems ? (
+                        <div className={`items-grid items-grid-${Math.min(1 + extraItems.length, 4)}`}>
+                            <div className="item-cell">
+                                <div className="item-cell-label">A</div>
+                                <div className="measurement-row">
+                                    <span>w:</span>
+                                    <span className="measurement-field" />
+                                    <span>mm</span>
+                                </div>
+                                <div className="measurement-row">
+                                    <span>h:</span>
+                                    <span className="measurement-field" />
+                                    <span>mm</span>
+                                </div>
                             </div>
+                            {extraItems.map(item => (
+                                <div key={item.id} className="item-cell">
+                                    <div className="item-cell-label">{item.label}</div>
+                                    <div className="measurement-row">
+                                        <span>w:</span>
+                                        <span className="measurement-field" />
+                                        <span>mm</span>
+                                    </div>
+                                    <div className="measurement-row">
+                                        <span>h:</span>
+                                        <span className="measurement-field" />
+                                        <span>mm</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <>
                             <div className="measurement-row">
                                 <span>width:</span>
                                 <span className="measurement-field" />
@@ -576,8 +642,8 @@ export default async function ArtworkCompliancePrintPage({
                                 <span className="measurement-field" />
                                 <span>mm</span>
                             </div>
-                        </div>
-                    ))}
+                        </>
+                    )}
 
                     {/* Checklist */}
                     <div className="section-title">checklist</div>
@@ -605,22 +671,39 @@ export default async function ArtworkCompliancePrintPage({
                     {/* Dimension Check */}
                     <div className="dimension-check-section">
                         <div className="title">dimension check (office use)</div>
-                        {hasExtraItems && (
-                            <div style={{ fontSize: '7px', fontWeight: 700, marginBottom: '0.5mm' }}>item A</div>
-                        )}
-                        <div className="measurement-row">
-                            <span>width dev:</span>
-                            <span className="measurement-field" style={{ width: '15mm' }} />
-                            <span>mm</span>
-                        </div>
-                        <div className="measurement-row">
-                            <span>height dev:</span>
-                            <span className="measurement-field" style={{ width: '15mm' }} />
-                            <span>mm</span>
-                        </div>
-                        {extraItems.map(item => (
-                            <div key={item.id}>
-                                <div style={{ fontSize: '7px', fontWeight: 700, marginTop: '1mm', marginBottom: '0.5mm' }}>item {item.label}</div>
+                        {hasExtraItems ? (
+                            <div className={`items-grid dim-check-grid items-grid-${Math.min(1 + extraItems.length, 4)}`}>
+                                <div className="item-cell">
+                                    <div className="item-cell-label">A</div>
+                                    <div className="measurement-row">
+                                        <span>w dev:</span>
+                                        <span className="measurement-field" />
+                                        <span>mm</span>
+                                    </div>
+                                    <div className="measurement-row">
+                                        <span>h dev:</span>
+                                        <span className="measurement-field" />
+                                        <span>mm</span>
+                                    </div>
+                                </div>
+                                {extraItems.map(item => (
+                                    <div key={item.id} className="item-cell">
+                                        <div className="item-cell-label">{item.label}</div>
+                                        <div className="measurement-row">
+                                            <span>w dev:</span>
+                                            <span className="measurement-field" />
+                                            <span>mm</span>
+                                        </div>
+                                        <div className="measurement-row">
+                                            <span>h dev:</span>
+                                            <span className="measurement-field" />
+                                            <span>mm</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <>
                                 <div className="measurement-row">
                                     <span>width dev:</span>
                                     <span className="measurement-field" style={{ width: '15mm' }} />
@@ -631,8 +714,8 @@ export default async function ArtworkCompliancePrintPage({
                                     <span className="measurement-field" style={{ width: '15mm' }} />
                                     <span>mm</span>
                                 </div>
-                            </div>
-                        ))}
+                            </>
+                        )}
                         <div className="checkbox-line" style={{ marginTop: '1mm' }}>
                             <span className="checkbox-empty" />
                             <span>within tolerance (+/- {DIMENSION_TOLERANCE_MM}mm)</span>
