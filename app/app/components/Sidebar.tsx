@@ -18,6 +18,7 @@ import {
     Calculator,
     DollarSign,
     Palette,
+    ClipboardCheck,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -44,6 +45,7 @@ const adminSubItems = [
     { label: 'Quotes', href: '/app/admin/quotes', icon: Calculator },
     { label: 'Pricing', href: '/app/admin/pricing', icon: DollarSign },
     { label: 'Design Packs', href: '/app/admin/design-packs', icon: Palette },
+    { label: 'Artwork Compliance', href: '/app/admin/artwork', icon: ClipboardCheck },
 ];
 
 export function Sidebar({ isAdmin }: SidebarProps) {
