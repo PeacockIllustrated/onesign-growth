@@ -72,6 +72,7 @@ export const ArtworkJobSchema = z.object({
     job_reference: z.string(),
     client_name: z.string().nullable(),
     description: z.string().nullable(),
+    cover_image_path: z.string().nullable(),
     status: ArtworkJobStatusEnum,
     created_at: z.string(),
     updated_at: z.string(),

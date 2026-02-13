@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/auth';
 import { getArtworkJob } from '@/lib/artwork/actions';
+import { createServerClient } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
 import { PageHeader, Card, Chip } from '@/app/app/components/ui';
 import Link from 'next/link';
@@ -15,7 +16,10 @@ import {
     formatDate,
 } from '@/lib/artwork/utils';
 import { ArtworkJobStatus, ComponentStatus } from '@/lib/artwork/types';
+import { getApprovalForJob } from '@/lib/artwork/approval-actions';
 import { AddComponentForm } from './components/AddComponentForm';
+import { ApprovalLinkSection } from './components/ApprovalLinkSection';
+import { CoverImageUpload } from './components/CoverImageUpload';
 
 export default async function ArtworkJobDetailPage({
     params,
@@ -25,10 +29,23 @@ export default async function ArtworkJobDetailPage({
     await requireAdmin();
 
     const { id } = await params;
-    const job = await getArtworkJob(id);
+    const [job, approval] = await Promise.all([
+        getArtworkJob(id),
+        getApprovalForJob(id),
+    ]);
 
     if (!job) {
         notFound();
+    }
+
+    // Generate signed URL for cover image if present
+    let coverImageUrl: string | null = null;
+    if (job.cover_image_path) {
+        const supabase = await createServerClient();
+        const { data } = await supabase.storage
+            .from('artwork-assets')
+            .createSignedUrl(job.cover_image_path, 3600);
+        coverImageUrl = data?.signedUrl || null;
     }
 
     const progress = getJobProgress(job.components);
@@ -227,6 +244,19 @@ export default async function ArtworkJobDetailPage({
                             </div>
                         </div>
                     </Card>
+
+                    {/* Cover Image */}
+                    <CoverImageUpload
+                        jobId={id}
+                        coverImageUrl={coverImageUrl}
+                    />
+
+                    {/* Client Approval */}
+                    <ApprovalLinkSection
+                        jobId={id}
+                        approval={approval}
+                        hasSignedOffComponents={hasSignedOffComponents}
+                    />
                 </div>
             </div>
         </div>

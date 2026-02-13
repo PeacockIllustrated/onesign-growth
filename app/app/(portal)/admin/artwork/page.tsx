@@ -106,6 +106,9 @@ export default async function ArtworkJobsPage({
                                         status
                                     </th>
                                     <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                        client
+                                    </th>
+                                    <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">
                                         last updated
                                     </th>
                                 </tr>
@@ -139,6 +142,13 @@ export default async function ArtworkJobsPage({
                                             <Chip variant={getJobStatusVariant(job.status as ArtworkJobStatus)}>
                                                 {getJobStatusLabel(job.status as ArtworkJobStatus)}
                                             </Chip>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {job.client_approved ? (
+                                                <Chip variant="approved">approved</Chip>
+                                            ) : (
+                                                <span className="text-sm text-neutral-400">—</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-neutral-500">
                                             {formatDate(job.updated_at)}

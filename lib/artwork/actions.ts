@@ -771,6 +771,96 @@ export async function uploadArtworkThumbnail(
 }
 
 // =============================================================================
+// COVER IMAGE
+// =============================================================================
+
+/**
+ * Upload a cover image for an artwork job
+ */
+export async function uploadCoverImage(
+    jobId: string,
+    formData: FormData
+): Promise<{ path: string } | { error: string }> {
+    const user = await getUser();
+    if (!user) {
+        return { error: 'not authenticated' };
+    }
+
+    const file = formData.get('file') as File;
+    if (!file) {
+        return { error: 'no file provided' };
+    }
+
+    const supabase = await createServerClient();
+
+    const ext = file.name.split('.').pop() || 'png';
+    const storagePath = `${jobId}/cover-image.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('artwork-assets')
+        .upload(storagePath, file, { upsert: true });
+
+    if (uploadError) {
+        console.error('error uploading cover image:', uploadError);
+        return { error: uploadError.message };
+    }
+
+    // Update job with cover image path
+    const { error: updateError } = await supabase
+        .from('artwork_jobs')
+        .update({ cover_image_path: storagePath })
+        .eq('id', jobId);
+
+    if (updateError) {
+        console.error('error updating cover image path:', updateError);
+        return { error: updateError.message };
+    }
+
+    revalidatePath(`/app/admin/artwork/${jobId}`);
+    return { path: storagePath };
+}
+
+/**
+ * Remove cover image from an artwork job
+ */
+export async function removeCoverImage(
+    jobId: string
+): Promise<{ success: boolean } | { error: string }> {
+    const user = await getUser();
+    if (!user) {
+        return { error: 'not authenticated' };
+    }
+
+    const supabase = await createServerClient();
+
+    // Get current cover image path
+    const { data: job } = await supabase
+        .from('artwork_jobs')
+        .select('cover_image_path')
+        .eq('id', jobId)
+        .single();
+
+    if (job?.cover_image_path) {
+        await supabase.storage
+            .from('artwork-assets')
+            .remove([job.cover_image_path]);
+    }
+
+    const { error } = await supabase
+        .from('artwork_jobs')
+        .update({ cover_image_path: null })
+        .eq('id', jobId);
+
+    if (error) {
+        console.error('error removing cover image:', error);
+        return { error: error.message };
+    }
+
+    revalidatePath(`/app/admin/artwork/${jobId}`);
+    return { success: true };
+}
+
+// =============================================================================
 // QUERY HELPERS
 // =============================================================================
 
@@ -779,12 +869,12 @@ export async function uploadArtworkThumbnail(
  */
 export async function getArtworkJobs(
     filters?: { status?: string; search?: string }
-): Promise<ArtworkJob[]> {
+): Promise<(ArtworkJob & { client_approved: boolean })[]> {
     const supabase = await createServerClient();
 
     let query = supabase
         .from('artwork_jobs')
-        .select('*')
+        .select('*, artwork_approvals(status)')
         .order('created_at', { ascending: false });
 
     if (filters?.status && filters.status !== 'all') {
@@ -804,7 +894,12 @@ export async function getArtworkJobs(
         return [];
     }
 
-    return (data || []) as ArtworkJob[];
+    return (data || []).map((row: any) => {
+        const approvals = row.artwork_approvals || [];
+        const client_approved = approvals.some((a: any) => a.status === 'approved');
+        const { artwork_approvals, ...job } = row;
+        return { ...job, client_approved } as ArtworkJob & { client_approved: boolean };
+    });
 }
 
 /**
