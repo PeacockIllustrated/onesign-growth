@@ -12,6 +12,7 @@ interface QuoteHeaderEditProps {
 }
 
 export function QuoteHeaderEdit({ quote }: QuoteHeaderEditProps) {
+    const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export function QuoteHeaderEdit({ quote }: QuoteHeaderEditProps) {
                 setError(result.error);
             } else {
                 setIsEditing(false);
-                window.location.reload(); // Refresh server component
+                router.refresh();
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to update');
@@ -56,7 +57,7 @@ export function QuoteHeaderEdit({ quote }: QuoteHeaderEditProps) {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label className="block text-[10px] font-medium text-neutral-500 uppercase mb-1">Customer Name</label>
                         <input

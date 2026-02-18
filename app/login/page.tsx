@@ -33,8 +33,23 @@ function LoginForm() {
                 return;
             }
 
-            // Redirect to dashboard
-            router.push('/app/dashboard');
+            // Check role to determine redirect target
+            const { data: { user } } = await supabase.auth.getUser();
+            let redirectTo = '/app/dashboard';
+
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile?.role === 'super_admin') {
+                    redirectTo = '/app/admin';
+                }
+            }
+
+            router.push(redirectTo);
             router.refresh();
         } catch {
             setError('An unexpected error occurred');

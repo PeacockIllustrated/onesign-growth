@@ -19,14 +19,80 @@ import {
     DollarSign,
     Palette,
     ClipboardCheck,
+    X,
+    CalendarDays,
+    Rocket,
+    Calendar,
+    CalendarCheck,
+    UserCheck,
+    Scissors,
+    UsersRound,
+    Settings,
+    BarChart3,
 } from 'lucide-react';
 import { useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { useSidebar } from './SidebarContext';
 
 interface SidebarProps {
     isAdmin: boolean;
 }
 
-const navItems = [
+interface NavItem {
+    label: string;
+    href: string;
+    icon: LucideIcon;
+}
+
+interface NavGroup {
+    label: string;
+    items: NavItem[];
+}
+
+const adminOverview: NavItem = { label: 'Overview', href: '/app/admin', icon: Shield };
+
+const adminNavGroups: NavGroup[] = [
+    {
+        label: 'Sales',
+        items: [
+            { label: 'Leads', href: '/app/admin/leads', icon: Users },
+            { label: 'Quotes', href: '/app/admin/quotes', icon: Calculator },
+        ],
+    },
+    {
+        label: 'Operations',
+        items: [
+            { label: 'Artwork', href: '/app/admin/artwork', icon: ClipboardCheck },
+            { label: 'Design Packs', href: '/app/admin/design-packs', icon: Palette },
+        ],
+    },
+    {
+        label: 'Client Management',
+        items: [
+            { label: 'Orgs', href: '/app/admin/orgs', icon: Building2 },
+            { label: 'Subscriptions', href: '/app/admin/subscriptions', icon: Package },
+            { label: 'Deliverables', href: '/app/admin/deliverables', icon: Zap },
+            { label: 'Reports', href: '/app/admin/reports', icon: FileText },
+            { label: 'Pricing', href: '/app/admin/pricing', icon: DollarSign },
+        ],
+    },
+    {
+        label: 'Booking OS',
+        items: [
+            { label: 'Dashboard', href: '/app/admin/booking', icon: CalendarDays },
+            { label: 'Launchpad', href: '/app/admin/booking/launchpad', icon: Rocket },
+            { label: 'Calendar', href: '/app/admin/booking/calendar', icon: Calendar },
+            { label: 'Bookings', href: '/app/admin/booking/bookings', icon: CalendarCheck },
+            { label: 'Clients', href: '/app/admin/booking/clients', icon: UserCheck },
+            { label: 'Services', href: '/app/admin/booking/services', icon: Scissors },
+            { label: 'Staff', href: '/app/admin/booking/staff', icon: UsersRound },
+            { label: 'Settings', href: '/app/admin/booking/settings', icon: Settings },
+            { label: 'Reports', href: '/app/admin/booking/reports', icon: BarChart3 },
+        ],
+    },
+];
+
+const clientNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
     { label: 'Deliverables', href: '/app/deliverables', icon: CheckSquare },
     { label: 'Assets', href: '/app/assets', icon: FolderOpen },
@@ -34,111 +100,95 @@ const navItems = [
     { label: 'Billing', href: '/app/billing', icon: CreditCard },
 ];
 
-const adminItem = { label: 'Admin', href: '/app/admin', icon: Shield };
-
-const adminSubItems = [
-    { label: 'Leads', href: '/app/admin/leads', icon: Users },
-    { label: 'Orgs', href: '/app/admin/orgs', icon: Building2 },
-    { label: 'Subscriptions', href: '/app/admin/subscriptions', icon: Package },
-    { label: 'Reports', href: '/app/admin/reports', icon: FileText },
-    { label: 'Deliverables', href: '/app/admin/deliverables', icon: Zap },
-    { label: 'Quotes', href: '/app/admin/quotes', icon: Calculator },
-    { label: 'Pricing', href: '/app/admin/pricing', icon: DollarSign },
-    { label: 'Design Packs', href: '/app/admin/design-packs', icon: Palette },
-    { label: 'Artwork Compliance', href: '/app/admin/artwork', icon: ClipboardCheck },
-];
+function isItemActive(pathname: string, href: string): boolean {
+    if (href === '/app/admin') {
+        return pathname === '/app/admin';
+    }
+    return pathname === href || pathname.startsWith(href + '/');
+}
 
 export function Sidebar({ isAdmin }: SidebarProps) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const { mobileOpen, closeMobile } = useSidebar();
 
-    const isAdminSection = pathname.startsWith('/app/admin');
-    const allItems = isAdmin ? [...navItems, adminItem] : navItems;
+    const homeHref = isAdmin ? '/app/admin' : '/app/dashboard';
 
-    return (
-        <aside
-            className={`
-                bg-white border-r border-neutral-200 flex flex-col
-                transition-all duration-200 ease-in-out
-                ${collapsed ? 'w-16' : 'w-56'}
-            `}
-        >
-            {/* Logo */}
-            <div className="h-14 flex items-center justify-between px-4 border-b border-neutral-100">
-                {!collapsed && (
-                    <Link href="/app/dashboard" className="font-bold text-sm tracking-tight">
-                        OneSign <span className="text-neutral-400 font-normal">Portal</span>
-                    </Link>
-                )}
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
-                    aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                >
-                    {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-                </button>
-            </div>
-
+    const sidebarContent = (
+        <>
             {/* Navigation */}
             <nav className="flex-1 py-4 px-2 overflow-y-auto">
-                <ul className="space-y-1">
-                    {allItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href ||
-                            (item.href !== '/app/admin' && pathname.startsWith(item.href + '/')) ||
-                            (item.href === '/app/admin' && isAdminSection);
+                {isAdmin ? (
+                    <>
+                        {/* Admin Overview */}
+                        <NavLink
+                            item={adminOverview}
+                            isActive={isItemActive(pathname, adminOverview.href)}
+                            collapsed={collapsed}
+                            onNavigate={closeMobile}
+                        />
 
-                        return (
-                            <li key={item.href}>
-                                <Link
-                                    href={item.href}
-                                    className={`
-                                        flex items-center gap-3 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium
-                                        transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black
-                                        ${isActive
-                                            ? 'bg-black text-white'
-                                            : 'text-neutral-600 hover:bg-neutral-100 hover:text-black'
-                                        }
-                                        ${collapsed ? 'justify-center' : ''}
-                                    `}
-                                    title={collapsed ? item.label : undefined}
-                                >
-                                    <Icon size={18} />
-                                    {!collapsed && <span>{item.label}</span>}
-                                </Link>
-
-                                {/* Admin Sub-navigation */}
-                                {item.href === '/app/admin' && isAdmin && isAdminSection && !collapsed && (
-                                    <ul className="mt-1 ml-4 space-y-0.5 border-l border-neutral-200 pl-3">
-                                        {adminSubItems.map((subItem) => {
-                                            const SubIcon = subItem.icon;
-                                            const isSubActive = pathname === subItem.href;
-
-                                            return (
-                                                <li key={subItem.href}>
-                                                    <Link
-                                                        href={subItem.href}
-                                                        className={`
-                                                            flex items-center gap-2 px-2 py-1.5 rounded text-xs font-medium
-                                                            transition-colors duration-150
-                                                            ${isSubActive
-                                                                ? 'bg-neutral-100 text-black'
-                                                                : 'text-neutral-500 hover:bg-neutral-50 hover:text-black'
-                                                            }
-                                                        `}
-                                                    >
-                                                        <SubIcon size={14} />
-                                                        <span>{subItem.label}</span>
-                                                    </Link>
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
+                        {/* Admin Nav Groups */}
+                        {adminNavGroups.map((group) => (
+                            <div key={group.label} className="mt-4">
+                                {!collapsed && (
+                                    <div className="px-3 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">
+                                        {group.label}
+                                    </div>
                                 )}
+                                <ul className="space-y-0.5">
+                                    {group.items.map((item) => (
+                                        <li key={item.href}>
+                                            <NavLink
+                                                item={item}
+                                                isActive={isItemActive(pathname, item.href)}
+                                                collapsed={collapsed}
+                                                onNavigate={closeMobile}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+
+                        {/* Separator */}
+                        <div className="my-4 mx-2 border-t border-neutral-200" />
+
+                        {/* Client View section */}
+                        {!collapsed && (
+                            <div className="px-3 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">
+                                Client View
+                            </div>
+                        )}
+                        <ul className="space-y-0.5">
+                            {clientNavItems.map((item) => (
+                                <li key={item.href}>
+                                    <NavLink
+                                        item={item}
+                                        isActive={isItemActive(pathname, item.href)}
+                                        collapsed={collapsed}
+                                        muted
+                                        onNavigate={closeMobile}
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    </>
+                ) : (
+                    /* Client-only view */
+                    <ul className="space-y-1">
+                        {clientNavItems.map((item) => (
+                            <li key={item.href}>
+                                <NavLink
+                                    item={item}
+                                    isActive={isItemActive(pathname, item.href)}
+                                    collapsed={collapsed}
+                                    onNavigate={closeMobile}
+                                />
                             </li>
-                        );
-                    })}
-                </ul>
+                        ))}
+                    </ul>
+                )}
             </nav>
 
             {/* Footer */}
@@ -149,7 +199,176 @@ export function Sidebar({ isAdmin }: SidebarProps) {
                     </p>
                 </div>
             )}
-        </aside>
+        </>
+    );
+
+    return (
+        <>
+            {/* Desktop sidebar - hidden on mobile */}
+            <aside
+                className={`
+                    hidden md:flex bg-white border-r border-neutral-200 flex-col
+                    transition-all duration-200 ease-in-out
+                    ${collapsed ? 'w-16' : 'w-56'}
+                `}
+            >
+                {/* Logo + collapse toggle */}
+                <div className="h-14 flex items-center justify-between px-4 border-b border-neutral-100">
+                    {!collapsed && (
+                        <Link href={homeHref} className="font-bold text-sm tracking-tight">
+                            OneSign <span className="text-neutral-400 font-normal">Portal</span>
+                        </Link>
+                    )}
+                    <button
+                        onClick={() => setCollapsed(!collapsed)}
+                        className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
+                        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                    </button>
+                </div>
+
+                {sidebarContent}
+            </aside>
+
+            {/* Mobile sidebar overlay */}
+            {mobileOpen && (
+                <div className="fixed inset-0 z-40 md:hidden">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/40 transition-opacity"
+                        onClick={closeMobile}
+                    />
+
+                    {/* Drawer */}
+                    <aside className="relative w-72 max-w-[85vw] h-full bg-white shadow-xl flex flex-col animate-slide-in">
+                        {/* Logo + close */}
+                        <div className="h-14 flex items-center justify-between px-4 border-b border-neutral-100">
+                            <Link href={homeHref} className="font-bold text-sm tracking-tight" onClick={closeMobile}>
+                                OneSign <span className="text-neutral-400 font-normal">Portal</span>
+                            </Link>
+                            <button
+                                onClick={closeMobile}
+                                className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
+                                aria-label="Close menu"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Reuse the same nav content, never collapsed on mobile */}
+                        <nav className="flex-1 py-4 px-2 overflow-y-auto">
+                            {isAdmin ? (
+                                <>
+                                    <NavLink
+                                        item={adminOverview}
+                                        isActive={isItemActive(pathname, adminOverview.href)}
+                                        collapsed={false}
+                                        onNavigate={closeMobile}
+                                    />
+
+                                    {adminNavGroups.map((group) => (
+                                        <div key={group.label} className="mt-4">
+                                            <div className="px-3 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">
+                                                {group.label}
+                                            </div>
+                                            <ul className="space-y-0.5">
+                                                {group.items.map((item) => (
+                                                    <li key={item.href}>
+                                                        <NavLink
+                                                            item={item}
+                                                            isActive={isItemActive(pathname, item.href)}
+                                                            collapsed={false}
+                                                            onNavigate={closeMobile}
+                                                        />
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+
+                                    <div className="my-4 mx-2 border-t border-neutral-200" />
+
+                                    <div className="px-3 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">
+                                        Client View
+                                    </div>
+                                    <ul className="space-y-0.5">
+                                        {clientNavItems.map((item) => (
+                                            <li key={item.href}>
+                                                <NavLink
+                                                    item={item}
+                                                    isActive={isItemActive(pathname, item.href)}
+                                                    collapsed={false}
+                                                    muted
+                                                    onNavigate={closeMobile}
+                                                />
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            ) : (
+                                <ul className="space-y-1">
+                                    {clientNavItems.map((item) => (
+                                        <li key={item.href}>
+                                            <NavLink
+                                                item={item}
+                                                isActive={isItemActive(pathname, item.href)}
+                                                collapsed={false}
+                                                onNavigate={closeMobile}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </nav>
+
+                        <div className="p-4 border-t border-neutral-100">
+                            <p className="text-xs text-neutral-400">
+                                &copy; {new Date().getFullYear()} OneSign
+                            </p>
+                        </div>
+                    </aside>
+                </div>
+            )}
+        </>
     );
 }
 
+function NavLink({
+    item,
+    isActive,
+    collapsed,
+    muted,
+    onNavigate,
+}: {
+    item: NavItem;
+    isActive: boolean;
+    collapsed: boolean;
+    muted?: boolean;
+    onNavigate?: () => void;
+}) {
+    const Icon = item.icon;
+
+    const baseClasses = 'flex items-center gap-3 px-3 py-2 rounded-[var(--radius-sm)] text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black';
+
+    let stateClasses: string;
+    if (isActive) {
+        stateClasses = 'bg-black text-white';
+    } else if (muted) {
+        stateClasses = 'text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600';
+    } else {
+        stateClasses = 'text-neutral-600 hover:bg-neutral-100 hover:text-black';
+    }
+
+    return (
+        <Link
+            href={item.href}
+            className={`${baseClasses} ${stateClasses} ${collapsed ? 'justify-center' : ''}`}
+            title={collapsed ? item.label : undefined}
+            onClick={onNavigate}
+        >
+            <Icon size={18} />
+            {!collapsed && <span>{item.label}</span>}
+        </Link>
+    );
+}

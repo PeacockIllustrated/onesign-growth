@@ -95,6 +95,8 @@ export async function updateArtworkJob(
     if (updates.job_name !== undefined) updateData.job_name = updates.job_name;
     if (updates.client_name !== undefined) updateData.client_name = updates.client_name;
     if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.panel_size !== undefined) updateData.panel_size = updates.panel_size;
+    if (updates.paint_colour !== undefined) updateData.paint_colour = updates.paint_colour;
     if (updates.status !== undefined) updateData.status = updates.status;
 
     const { error } = await supabase

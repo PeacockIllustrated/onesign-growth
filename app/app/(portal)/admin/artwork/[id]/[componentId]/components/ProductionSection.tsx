@@ -199,7 +199,7 @@ export function ProductionSection({ component, jobId }: ProductionSectionProps) 
                 {component.extra_items?.length ? (
                     <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">item A measurements</p>
                 ) : null}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label className="block text-xs font-medium text-neutral-700 mb-1">
                             measured width (mm) <span className="text-red-500">*</span>
@@ -236,7 +236,7 @@ export function ProductionSection({ component, jobId }: ProductionSectionProps) 
                 {component.extra_items?.map((item) => (
                     <div key={item.id} className="mt-3 pt-3 border-t border-neutral-100">
                         <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">item {item.label} measurements</p>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-xs font-medium text-neutral-700 mb-1">
                                     measured width (mm) <span className="text-red-500">*</span>

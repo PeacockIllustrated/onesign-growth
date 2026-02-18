@@ -193,6 +193,24 @@ export default function ApprovalClientView({ data, token }: Props) {
                     <p style={{ fontSize: '13px', color: '#999', fontWeight: 500 }}>
                         {job.job_reference}{job.client_name ? ` — ${job.client_name}` : ''}
                     </p>
+
+                    {(job.panel_size || job.paint_colour) && (
+                        <div style={{ display: 'flex', gap: '24px', marginTop: '12px' }}>
+                            {job.panel_size && (
+                                <div>
+                                    <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999', fontWeight: 600, marginBottom: '2px' }}>panel size</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#111' }}>{job.panel_size}</div>
+                                </div>
+                            )}
+                            {job.paint_colour && (
+                                <div>
+                                    <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999', fontWeight: 600, marginBottom: '2px' }}>paint colour</div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#111' }}>{job.paint_colour}</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {job.description && (
                         <p style={{ fontSize: '13px', color: '#666', lineHeight: 1.6, marginTop: '12px' }}>
                             {job.description}

@@ -20,6 +20,7 @@ import { getApprovalForJob } from '@/lib/artwork/approval-actions';
 import { AddComponentForm } from './components/AddComponentForm';
 import { ApprovalLinkSection } from './components/ApprovalLinkSection';
 import { CoverImageUpload } from './components/CoverImageUpload';
+import { JobFieldsForm } from './components/JobFieldsForm';
 
 export default async function ArtworkJobDetailPage({
     params,
@@ -244,6 +245,13 @@ export default async function ArtworkJobDetailPage({
                             </div>
                         </div>
                     </Card>
+
+                    {/* Panel Size & Paint Colour */}
+                    <JobFieldsForm
+                        jobId={id}
+                        panelSize={job.panel_size}
+                        paintColour={job.paint_colour}
+                    />
 
                     {/* Cover Image */}
                     <CoverImageUpload

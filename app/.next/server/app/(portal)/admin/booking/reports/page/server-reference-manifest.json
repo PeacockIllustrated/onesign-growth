@@ -1,0 +1,50 @@
+{
+  "node": {
+    "70d5e86f0eb6020772fcb3e6f8bf9785cfe1494af6": {
+      "workers": {
+        "app/(portal)/admin/booking/reports/page": {
+          "moduleId": 23235,
+          "async": false,
+          "exportedName": "fetchBookingStats",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/reports/page": "action-browser"
+      },
+      "exportedName": "fetchBookingStats",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    },
+    "7051c00f8b9ea0fc29fdda1b1889006024d950fb76": {
+      "workers": {
+        "app/(portal)/admin/booking/reports/page": {
+          "moduleId": 23235,
+          "async": false,
+          "exportedName": "fetchStaffUtilisation",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/reports/page": "action-browser"
+      },
+      "exportedName": "fetchStaffUtilisation",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    },
+    "70bc7b7bc3ec89ae4a56a2bf7c617605809b1e9244": {
+      "workers": {
+        "app/(portal)/admin/booking/reports/page": {
+          "moduleId": 23235,
+          "async": false,
+          "exportedName": "fetchBookingsForExport",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/reports/page": "action-browser"
+      },
+      "exportedName": "fetchBookingsForExport",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    }
+  },
+  "edge": {}
+}

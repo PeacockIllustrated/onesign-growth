@@ -179,7 +179,7 @@ export function ConvertLeadWizard({ lead, open, onClose, onSuccess }: ConvertLea
 
     return (
         <Modal open={open} onClose={handleClose} title="Convert Lead to Client">
-            <div className="min-w-[500px]">
+            <div className="w-full sm:min-w-[500px]">
                 {/* Progress Steps */}
                 {step !== 'success' && (
                     <div className="flex items-center justify-between mb-6 px-4">

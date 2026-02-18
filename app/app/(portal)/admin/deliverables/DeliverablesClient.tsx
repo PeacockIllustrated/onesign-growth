@@ -77,7 +77,7 @@ export function DeliverablesClient({ orgs, deliverables: initialDeliverables, su
 
     return (
         <>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
                 <div className="flex gap-2 items-center">
                     <select
                         value={filterOrgId}
@@ -90,14 +90,14 @@ export function DeliverablesClient({ orgs, deliverables: initialDeliverables, su
                         ))}
                     </select>
                 </div>
-                <button onClick={() => setGenerateOpen(true)} className="btn-primary flex items-center gap-2">
+                <button onClick={() => setGenerateOpen(true)} className="btn-primary flex items-center gap-2 shrink-0">
                     <Plus size={16} />
                     Generate Monthly
                 </button>
             </div>
 
             {/* Kanban Board */}
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                 {STATUS_COLUMNS.map(status => (
                     <div
                         key={status}

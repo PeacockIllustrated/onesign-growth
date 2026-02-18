@@ -109,6 +109,7 @@ export interface Quote {
     status: QuoteStatus;
     pricing_set_id: string;
     notes_internal: string | null;
+    valid_until: string | null;
     created_at: string;
     created_by: string | null;
     updated_at: string;

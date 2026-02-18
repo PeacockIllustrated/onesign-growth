@@ -578,6 +578,18 @@ export default async function ArtworkVisualPackPrintPage({
                                 <div className="cover-meta-label">status</div>
                                 <div className="cover-meta-value">awaiting approval</div>
                             </div>
+                            {job.panel_size && (
+                                <div>
+                                    <div className="cover-meta-label">panel size</div>
+                                    <div className="cover-meta-value">{job.panel_size}</div>
+                                </div>
+                            )}
+                            {job.paint_colour && (
+                                <div>
+                                    <div className="cover-meta-label">paint colour</div>
+                                    <div className="cover-meta-value">{job.paint_colour}</div>
+                                </div>
+                            )}
                         </div>
 
                         {job.description && (

@@ -1,0 +1,20 @@
+{
+  "node": {
+    "405393a071c15fa9d1ea92de1433792bf5f7bb29ab": {
+      "workers": {
+        "app/(portal)/admin/booking/launchpad/page": {
+          "moduleId": 90661,
+          "async": false,
+          "exportedName": "createTenant",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/launchpad/page": "action-browser"
+      },
+      "exportedName": "createTenant",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    }
+  },
+  "edge": {}
+}

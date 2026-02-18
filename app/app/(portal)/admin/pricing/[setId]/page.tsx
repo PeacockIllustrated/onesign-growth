@@ -79,7 +79,7 @@ export default async function PricingSetEditPage({ params }: PageProps) {
 
             {/* Pricing Set Info */}
             <Card className="mb-6">
-                <div className="grid grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     <div>
                         <p className="text-xs font-medium text-neutral-500 uppercase mb-1">Status</p>
                         <p className="text-sm text-neutral-900 capitalize">{pricingSet.status}</p>

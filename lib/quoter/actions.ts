@@ -2,18 +2,65 @@
 
 /**
  * Quoter Server Actions
- * 
+ *
  * Server-side mutations for quotes and quote items.
- * All actions enforce super-admin access via RLS.
+ * All actions enforce super-admin access via RLS + application-level auth.
  */
 
 import { createServerClient } from '@/lib/supabase-server';
 import { getUser } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { getRateCardForPricingSet } from './rate-card';
 import { calculatePanelLettersV1 } from './engine/panel-letters-v1';
-import { PanelLettersV1Input, Quote, QuoteItem, PanelLettersV1Output } from './types';
+import { PanelLettersV1Input, Quote, QuoteItem, QuoteStatus, PanelLettersV1Output } from './types';
+
+// =============================================================================
+// HELPERS
+// =============================================================================
+
+/**
+ * Sanitise a search string for use in PostgREST .or() filters.
+ * Strips commas and special PostgREST operators to prevent filter injection.
+ */
+function sanitiseSearch(raw: string): string {
+    return raw.replace(/[,()]/g, '').trim();
+}
+
+/**
+ * Valid status transitions map.
+ * Key = current status, Value = array of allowed next statuses.
+ */
+const VALID_TRANSITIONS: Record<QuoteStatus, QuoteStatus[]> = {
+    draft: ['sent'],
+    sent: ['accepted', 'rejected', 'expired'],
+    accepted: [],
+    rejected: ['draft'],
+    expired: ['draft'],
+};
+
+/**
+ * Assert the quote is in draft status. Returns error string if not.
+ */
+async function assertQuoteDraft(
+    supabase: any,
+    quoteId: string
+): Promise<{ pricing_set_id: string; status: string } | { error: string }> {
+    const { data: quote, error: quoteError } = await supabase
+        .from('quotes')
+        .select('pricing_set_id, status')
+        .eq('id', quoteId)
+        .single();
+
+    if (quoteError || !quote) {
+        return { error: 'Quote not found' };
+    }
+
+    if (quote.status !== 'draft') {
+        return { error: `Cannot modify items on a quote with status: ${quote.status}` };
+    }
+
+    return quote;
+}
 
 // =============================================================================
 // QUOTE ACTIONS
@@ -42,6 +89,10 @@ export async function createQuoteAction(input: CreateQuoteInput): Promise<{ id: 
 
     const supabase = await createServerClient();
 
+    // Calculate valid_until as 30 days from now
+    const validUntil = new Date();
+    validUntil.setDate(validUntil.getDate() + 30);
+
     const { data, error } = await supabase
         .from('quotes')
         .insert({
@@ -51,6 +102,7 @@ export async function createQuoteAction(input: CreateQuoteInput): Promise<{ id: 
             pricing_set_id: input.pricing_set_id,
             status: 'draft',
             created_by: user.id,
+            valid_until: validUntil.toISOString().split('T')[0],
         })
         .select('id')
         .single();
@@ -84,7 +136,7 @@ export async function updateQuoteAction(input: UpdateQuoteInput): Promise<{ succ
             customer_email: input.customer_email,
             customer_phone: input.customer_phone,
             notes_internal: input.notes_internal,
-            updated_at: new Date().toISOString(),
+            // updated_at handled by DB trigger trg_quotes_updated_at
         })
         .eq('id', input.id);
 
@@ -111,9 +163,30 @@ export async function updateQuoteAction(input: UpdateQuoteInput): Promise<{ succ
 
 export async function updateQuoteStatusAction(
     quoteId: string,
-    status: Quote['status']
+    status: QuoteStatus
 ): Promise<{ success: boolean } | { error: string }> {
+    const user = await getUser();
+    if (!user) return { error: 'Not authenticated' };
+
     const supabase = await createServerClient();
+
+    // Fetch current status for transition validation
+    const { data: current, error: fetchError } = await supabase
+        .from('quotes')
+        .select('status')
+        .eq('id', quoteId)
+        .single();
+
+    if (fetchError || !current) {
+        return { error: 'Quote not found' };
+    }
+
+    const currentStatus = current.status as QuoteStatus;
+    const allowed = VALID_TRANSITIONS[currentStatus] || [];
+
+    if (!allowed.includes(status)) {
+        return { error: `Cannot transition from "${currentStatus}" to "${status}". Allowed: ${allowed.length > 0 ? allowed.join(', ') : 'none (terminal state)'}` };
+    }
 
     const { error } = await supabase
         .from('quotes')
@@ -125,12 +198,26 @@ export async function updateQuoteStatusAction(
         return { error: error.message };
     }
 
+    // Log audit
+    await logQuoteAudit(supabase, {
+        quote_id: quoteId,
+        user_id: user.id,
+        user_email: user.email!,
+        action: 'status_change',
+        summary: `Status changed from "${currentStatus}" to "${status}"`,
+        old_data: { status: currentStatus },
+        new_data: { status },
+    });
+
     revalidatePath(`/app/admin/quotes/${quoteId}`);
     revalidatePath('/app/admin/quotes');
     return { success: true };
 }
 
 export async function deleteQuoteAction(quoteId: string): Promise<{ success: boolean } | { error: string }> {
+    const user = await getUser();
+    if (!user) return { error: 'Not authenticated' };
+
     const supabase = await createServerClient();
 
     const { error } = await supabase
@@ -144,7 +231,7 @@ export async function deleteQuoteAction(quoteId: string): Promise<{ success: boo
     }
 
     revalidatePath('/app/admin/quotes');
-    redirect('/app/admin/quotes');
+    return { success: true };
 }
 
 // =============================================================================
@@ -193,6 +280,7 @@ export async function recalculatePanelLettersV1Action(
 /**
  * Add a panel letters v1 line item to a quote.
  * Recalculates server-side before persisting.
+ * Only allowed on draft quotes.
  */
 export async function addQuoteItemAction(
     quoteId: string,
@@ -205,19 +293,12 @@ export async function addQuoteItemAction(
 
     const supabase = await createServerClient();
 
-    // Get the quote to find its pricing_set_id
-    const { data: quote, error: quoteError } = await supabase
-        .from('quotes')
-        .select('pricing_set_id')
-        .eq('id', quoteId)
-        .single();
-
-    if (quoteError || !quote) {
-        return { error: 'Quote not found' };
-    }
+    // Check quote exists and is draft
+    const quoteCheck = await assertQuoteDraft(supabase, quoteId);
+    if ('error' in quoteCheck) return quoteCheck;
 
     // Recalculate server-side (never trust client calculation)
-    const rateCard = await getRateCardForPricingSet(quote.pricing_set_id);
+    const rateCard = await getRateCardForPricingSet(quoteCheck.pricing_set_id);
     const output = calculatePanelLettersV1(input, rateCard);
 
     if (!output.ok) {
@@ -243,12 +324,23 @@ export async function addQuoteItemAction(
         return { error: error.message };
     }
 
+    // Log audit
+    await logQuoteAudit(supabase, {
+        quote_id: quoteId,
+        user_id: user.id,
+        user_email: user.email!,
+        action: 'add_item',
+        summary: `Added item: Panel + Letters — £${(output.line_total_pence / 100).toFixed(2)}`,
+        new_data: { input, output },
+    });
+
     revalidatePath(`/app/admin/quotes/${quoteId}`);
     return { id: data.id };
 }
 
 /**
  * Update a panel letters v1 line item.
+ * Only allowed on draft quotes.
  */
 export async function updateQuoteItemAction(
     quoteId: string,
@@ -260,6 +352,10 @@ export async function updateQuoteItemAction(
 
     const supabase = await createServerClient();
 
+    // Check quote exists and is draft
+    const quoteCheck = await assertQuoteDraft(supabase, quoteId);
+    if ('error' in quoteCheck) return quoteCheck;
+
     // Get original for audit
     const { data: original } = await supabase
         .from('quote_items')
@@ -267,19 +363,8 @@ export async function updateQuoteItemAction(
         .eq('id', itemId)
         .single();
 
-    // Get the quote to find its pricing_set_id
-    const { data: quote, error: quoteError } = await supabase
-        .from('quotes')
-        .select('pricing_set_id')
-        .eq('id', quoteId)
-        .single();
-
-    if (quoteError || !quote) {
-        return { error: 'Quote not found' };
-    }
-
     // Recalculate server-side
-    const rateCard = await getRateCardForPricingSet(quote.pricing_set_id);
+    const rateCard = await getRateCardForPricingSet(quoteCheck.pricing_set_id);
     const output = calculatePanelLettersV1(input, rateCard);
 
     if (!output.ok) {
@@ -308,7 +393,7 @@ export async function updateQuoteItemAction(
         user_id: user.id,
         user_email: user.email!,
         action: 'update_item',
-        summary: `Updated item: ${output.ok ? 'Recalculated total £' + (output.line_total_pence / 100).toFixed(2) : 'Failed recalculation'}`,
+        summary: `Updated item: Recalculated total £${(output.line_total_pence / 100).toFixed(2)}`,
         old_data: original,
         new_data: { input, output },
     });
@@ -319,12 +404,28 @@ export async function updateQuoteItemAction(
 
 /**
  * Delete a quote item.
+ * Only allowed on draft quotes.
  */
 export async function deleteQuoteItemAction(
     quoteId: string,
     itemId: string
 ): Promise<{ success: boolean } | { error: string }> {
+    const user = await getUser();
+    if (!user) return { error: 'Not authenticated' };
+
     const supabase = await createServerClient();
+
+    // Check quote exists and is draft
+    const quoteCheck = await assertQuoteDraft(supabase, quoteId);
+    if ('error' in quoteCheck) return quoteCheck;
+
+    // Get original for audit before deleting
+    const { data: original } = await supabase
+        .from('quote_items')
+        .select('*')
+        .eq('id', itemId)
+        .eq('quote_id', quoteId)
+        .single();
 
     const { error } = await supabase
         .from('quote_items')
@@ -335,6 +436,18 @@ export async function deleteQuoteItemAction(
     if (error) {
         console.error('Error deleting quote item:', error);
         return { error: error.message };
+    }
+
+    // Log audit
+    if (original) {
+        await logQuoteAudit(supabase, {
+            quote_id: quoteId,
+            user_id: user.id,
+            user_email: user.email!,
+            action: 'delete_item',
+            summary: `Deleted item: £${(original.line_total_pence / 100).toFixed(2)}`,
+            old_data: original,
+        });
     }
 
     revalidatePath(`/app/admin/quotes/${quoteId}`);
@@ -361,7 +474,10 @@ export async function getQuotes(filters?: {
     }
 
     if (filters?.search) {
-        query = query.or(`quote_number.ilike.%${filters.search}%,customer_name.ilike.%${filters.search}%`);
+        const safe = sanitiseSearch(filters.search);
+        if (safe) {
+            query = query.or(`quote_number.ilike.%${safe}%,customer_name.ilike.%${safe}%`);
+        }
     }
 
     const { data, error } = await query;
@@ -430,6 +546,7 @@ export async function getPricingSets(): Promise<Array<{ id: string; name: string
 
 /**
  * Duplicate a quote (creates new quote header with new quote_number, copies all items).
+ * Items are recalculated against the current rate card to ensure fresh pricing.
  */
 export async function duplicateQuoteAction(
     quoteId: string
@@ -452,6 +569,10 @@ export async function duplicateQuoteAction(
         return { error: 'Quote not found' };
     }
 
+    // Calculate new valid_until
+    const validUntil = new Date();
+    validUntil.setDate(validUntil.getDate() + 30);
+
     // Create new quote (quote_number generated by DB trigger)
     const { data: newQuote, error: createError } = await supabase
         .from('quotes')
@@ -463,6 +584,7 @@ export async function duplicateQuoteAction(
             notes_internal: original.notes_internal ? `Copied from ${original.quote_number}: ${original.notes_internal}` : `Copied from ${original.quote_number}`,
             status: 'draft',
             created_by: user.id,
+            valid_until: validUntil.toISOString().split('T')[0],
         })
         .select('id')
         .single();
@@ -472,21 +594,29 @@ export async function duplicateQuoteAction(
         return { error: createError?.message || 'Failed to create quote' };
     }
 
-    // Copy all items
+    // Copy all items — recalculate each against current rate card
     const { data: items } = await supabase
         .from('quote_items')
         .select('*')
         .eq('quote_id', quoteId);
 
     if (items && items.length > 0) {
-        const newItems = items.map(item => ({
-            quote_id: newQuote.id,
-            item_type: item.item_type,
-            input_json: item.input_json,
-            output_json: item.output_json,
-            line_total_pence: item.line_total_pence,
-            created_by: user.id,
-        }));
+        const rateCard = await getRateCardForPricingSet(original.pricing_set_id);
+
+        const newItems = items.map(item => {
+            // Recalculate to get fresh pricing
+            const input = item.input_json as PanelLettersV1Input;
+            const freshOutput = calculatePanelLettersV1(input, rateCard);
+
+            return {
+                quote_id: newQuote.id,
+                item_type: item.item_type,
+                input_json: item.input_json,
+                output_json: freshOutput.ok ? freshOutput : item.output_json,
+                line_total_pence: freshOutput.ok ? freshOutput.line_total_pence : item.line_total_pence,
+                created_by: user.id,
+            };
+        });
 
         await supabase.from('quote_items').insert(newItems);
     }
@@ -508,6 +638,10 @@ export async function duplicateQuoteItemAction(
     }
 
     const supabase = await createServerClient();
+
+    // Check quote is draft
+    const quoteCheck = await assertQuoteDraft(supabase, quoteId);
+    if ('error' in quoteCheck) return quoteCheck;
 
     // Get original item
     const { data: original, error: fetchError } = await supabase

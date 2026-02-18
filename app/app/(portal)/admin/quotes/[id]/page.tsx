@@ -7,7 +7,7 @@ import { QuoteDetailClient } from './QuoteDetailClient';
 import { Quote, QuoteItem, PanelLettersV1Input } from '@/lib/quoter/types';
 import { hasOverrides } from '@/lib/quoter/utils';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Copy, AlertTriangle, History } from 'lucide-react';
+import { ArrowLeft, Printer, Copy, AlertTriangle, History, Send } from 'lucide-react';
 import { DuplicateQuoteButton } from './DuplicateQuoteButton';
 import { QuoteHeaderEdit } from './QuoteHeaderEdit';
 
@@ -85,6 +85,10 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         finishRulesByType[type] = Array.from(finishes);
     }
 
+    // Additional rate card data for client-side validation
+    const availableHeights = Array.from(rateCard.ledsPerLetterByHeight.keys()).sort((a, b) => a - b);
+    const letterPriceKeys = Array.from(rateCard.letterUnitPriceByTypeFinishHeight.keys());
+
     const quoteData = quote as Quote;
     const itemsData = (items || []) as QuoteItem[];
     const totalPence = itemsData.reduce((sum, item) => sum + (item.line_total_pence || 0), 0);
@@ -105,7 +109,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                 title={quoteData.quote_number}
                 description={quoteData.customer_name || 'No customer name'}
                 action={
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <DuplicateQuoteButton quoteId={id} />
                         <Link
                             href={`/app/admin/quotes/${id}/print`}
@@ -114,6 +118,14 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                         >
                             <Printer size={14} />
                             Print / PDF
+                        </Link>
+                        <Link
+                            href={`/app/admin/quotes/${id}/client`}
+                            target="_blank"
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-black hover:bg-neutral-800 rounded-[var(--radius-sm)] transition-colors"
+                        >
+                            <Send size={14} />
+                            Client PDF
                         </Link>
                         <Chip variant={getStatusVariant(quoteData.status)}>
                             {quoteData.status}
@@ -128,7 +140,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                     <h2 className="text-sm font-semibold text-neutral-900">Quote Details</h2>
                     <QuoteHeaderEdit quote={quoteData} />
                 </div>
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
                     <div>
                         <p className="text-xs font-medium text-neutral-500 uppercase mb-1">Customer</p>
                         <p className="text-sm text-neutral-900">{quoteData.customer_name || '—'}</p>
@@ -149,6 +161,14 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                         <p className="text-xs font-medium text-neutral-500 uppercase mb-1">Updated</p>
                         <p className="text-sm text-neutral-900">{formatDate(quoteData.updated_at)}</p>
                     </div>
+                    {quoteData.valid_until && (
+                        <div>
+                            <p className="text-xs font-medium text-neutral-500 uppercase mb-1">Valid Until</p>
+                            <p className={`text-sm ${new Date(quoteData.valid_until) < new Date() ? 'text-red-600 font-medium' : 'text-neutral-900'}`}>
+                                {new Date(quoteData.valid_until).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </p>
+                        </div>
+                    )}
                 </div>
                 {quoteData.notes_internal && (
                     <div className="mt-6 pt-4 border-t border-neutral-100">
@@ -216,7 +236,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                                 itemId={item.id}
                                                 mode="item-actions"
                                                 pricingSetId={quote.pricing_set_id}
-                                                rateCard={{ panelMaterials, panelFinishes, finishRulesByType }}
+                                                rateCard={{ panelMaterials, panelFinishes, finishRulesByType, availableHeights, letterPriceKeys }}
                                                 initialValues={input}
                                             />
                                         </div>
@@ -236,6 +256,8 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                     panelMaterials,
                     panelFinishes,
                     finishRulesByType,
+                    availableHeights,
+                    letterPriceKeys,
                 }}
             />
 
@@ -261,7 +283,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
                                         </div>
                                         <div className="text-right">
                                             <span className="text-[10px] px-1.5 py-0.5 font-bold uppercase tracking-wider bg-neutral-100 text-neutral-500 rounded">
-                                                {audit.action.replace('_', ' ')}
+                                                {audit.action.replace(/_/g, ' ')}
                                             </span>
                                         </div>
                                     </div>

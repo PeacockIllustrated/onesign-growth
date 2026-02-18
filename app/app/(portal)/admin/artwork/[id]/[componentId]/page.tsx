@@ -59,8 +59,8 @@ export default async function ComponentDetailPage({
                 back to {job.job_name}
             </Link>
 
-            <div className="flex items-start justify-between mb-6">
-                <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
+                <div className="min-w-0">
                     <ComponentActions
                         componentId={componentId}
                         jobId={id}
@@ -70,7 +70,7 @@ export default async function ComponentDetailPage({
                         {job.job_reference} — {getComponentTypeLabel(component.component_type)}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     {component.design_signed_off_at && (
                         <Link
                             href={`/app/admin/artwork/${id}/${componentId}/print`}

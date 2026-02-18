@@ -69,7 +69,7 @@ export function NewQuoteForm({
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-xs font-medium text-neutral-600 mb-1">
                             Email
@@ -90,7 +90,7 @@ export function NewQuoteForm({
                             type="tel"
                             value={customerPhone}
                             onChange={(e) => setCustomerPhone(e.target.value)}
-                            placeholder="01onal 123456"
+                            placeholder="01onal 123 456"
                             className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-[var(--radius-sm)] focus:outline-none focus:ring-2 focus:ring-black"
                         />
                     </div>

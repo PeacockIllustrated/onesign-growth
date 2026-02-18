@@ -32,6 +32,8 @@ export interface ApprovalPackData {
         client_name: string | null;
         description: string | null;
         cover_image_path: string | null;
+        panel_size: string | null;
+        paint_colour: string | null;
         status: string;
     };
     coverImageUrl: string | null;
@@ -187,7 +189,7 @@ export async function getApprovalByToken(
     // Fetch job
     const { data: job, error: jobError } = await supabase
         .from('artwork_jobs')
-        .select('id, job_name, job_reference, client_name, description, cover_image_path, status')
+        .select('id, job_name, job_reference, client_name, description, cover_image_path, panel_size, paint_colour, status')
         .eq('id', approval.job_id)
         .single();
 

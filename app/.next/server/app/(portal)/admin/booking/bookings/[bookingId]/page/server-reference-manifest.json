@@ -1,0 +1,50 @@
+{
+  "node": {
+    "70000bf91a65ff3ce2a922e6b7e9b16fe4f3fd44a0": {
+      "workers": {
+        "app/(portal)/admin/booking/bookings/[bookingId]/page": {
+          "moduleId": 19264,
+          "async": false,
+          "exportedName": "cancelBookingAdmin",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/bookings/[bookingId]/page": "action-browser"
+      },
+      "exportedName": "cancelBookingAdmin",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    },
+    "60602980e269245a2f02f3387cf18f7450c535a574": {
+      "workers": {
+        "app/(portal)/admin/booking/bookings/[bookingId]/page": {
+          "moduleId": 19264,
+          "async": false,
+          "exportedName": "markNoShowAdmin",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/bookings/[bookingId]/page": "action-browser"
+      },
+      "exportedName": "markNoShowAdmin",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    },
+    "604166d232021a105147c7535590a99f4972e9ad24": {
+      "workers": {
+        "app/(portal)/admin/booking/bookings/[bookingId]/page": {
+          "moduleId": 19264,
+          "async": false,
+          "exportedName": "completeBookingAdmin",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/bookings/[bookingId]/page": "action-browser"
+      },
+      "exportedName": "completeBookingAdmin",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    }
+  },
+  "edge": {}
+}

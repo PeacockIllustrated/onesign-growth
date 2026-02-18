@@ -1,0 +1,3 @@
+{
+  "/(portal)/admin/design-packs/[id]/present/page": "app/(portal)/admin/design-packs/[id]/present/page.js"
+}

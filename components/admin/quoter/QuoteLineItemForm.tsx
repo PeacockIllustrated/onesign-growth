@@ -29,6 +29,8 @@ interface QuoteLineItemFormProps {
         panelMaterials: string[];
         panelFinishes: string[];
         finishRulesByType: Record<string, string[]>;
+        availableHeights?: number[];
+        letterPriceKeys?: string[];
     };
     onSuccess: () => void;
     onCancel: () => void;
@@ -70,7 +72,7 @@ export function QuoteLineItemForm({
     const [isCalculating, setIsCalculating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
-    const [hasAperture, setHasAperture] = useState(false);
+    const [hasAperture, setHasAperture] = useState(!!initialValues?.aperture);
 
     const form = useForm<PanelLettersV1Input>({
         resolver: zodResolver(panelLettersV1InputSchema),
@@ -150,13 +152,13 @@ export function QuoteLineItemForm({
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left column - Form inputs */}
                 <div className="space-y-6">
                     {/* Panel Dimensions */}
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-neutral-900">Panel Dimensions</h3>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label className="block text-xs font-medium text-neutral-600 mb-1">
                                     Width (mm)
@@ -193,7 +195,7 @@ export function QuoteLineItemForm({
                     {/* Panel Material and Finish */}
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-neutral-900">Panel Specifications</h3>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label className="block text-xs font-medium text-neutral-600 mb-1">
                                     Sheet Size
@@ -252,7 +254,7 @@ export function QuoteLineItemForm({
                         </div>
 
                         {hasAperture && (
-                            <div className="grid grid-cols-3 gap-3 p-4 bg-neutral-50 rounded-[var(--radius-sm)]">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-neutral-50 rounded-[var(--radius-sm)]">
                                 <div>
                                     <label className="block text-xs font-medium text-neutral-600 mb-1">
                                         Width (mm)
@@ -296,7 +298,7 @@ export function QuoteLineItemForm({
                     {/* Labour Hours */}
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-neutral-900">Labour Hours</h3>
-                        <div className="grid grid-cols-5 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                             {(['router', 'fabrication', 'assembly', 'vinyl', 'print'] as const).map((task) => (
                                 <div key={task}>
                                     <label className="block text-xs font-medium text-neutral-600 mb-1 capitalize">
@@ -362,7 +364,7 @@ export function QuoteLineItemForm({
                                                 className="w-full px-2 py-1.5 text-xs border border-neutral-200 rounded focus:ring-1 focus:ring-amber-500"
                                             >
                                                 {OVERRIDE_REASON_CODES.map(code => (
-                                                    <option key={code} value={code}>{code.replace('_', ' ')}</option>
+                                                    <option key={code} value={code}>{code.replace(/_/g, ' ')}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -426,7 +428,7 @@ export function QuoteLineItemForm({
                                                         className="w-full px-2 py-1 text-xs border border-neutral-200 rounded focus:ring-1 focus:ring-amber-500"
                                                     >
                                                         {OVERRIDE_REASON_CODES.map(code => (
-                                                            <option key={code} value={code}>{code.replace('_', ' ')}</option>
+                                                            <option key={code} value={code}>{code.replace(/_/g, ' ')}</option>
                                                         ))}
                                                     </select>
                                                 </div>

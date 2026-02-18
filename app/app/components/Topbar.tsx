@@ -1,16 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { User, LogOut, ChevronDown, Settings } from 'lucide-react';
+import { User, LogOut, ChevronDown, Settings, Menu } from 'lucide-react';
 import Link from 'next/link';
 import type { Org } from '@/lib/supabase';
+import { useSidebar } from './SidebarContext';
 
 interface TopbarProps {
     org: Org;
+    isAdmin?: boolean;
 }
 
-export function Topbar({ org }: TopbarProps) {
+export function Topbar({ org, isAdmin }: TopbarProps) {
     const [menuOpen, setMenuOpen] = useState(false);
+    const { openMobile } = useSidebar();
 
     async function handleLogout() {
         // Call server action to sign out
@@ -21,11 +24,18 @@ export function Topbar({ org }: TopbarProps) {
     }
 
     return (
-        <header className="h-14 bg-white border-b border-neutral-200 flex items-center justify-between px-6">
-            {/* Org name */}
+        <header className="h-14 bg-white border-b border-neutral-200 flex items-center justify-between px-4 md:px-6">
+            {/* Left: hamburger (mobile) + org name */}
             <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-900">{org.name}</span>
-                <span className="badge text-xs">client portal</span>
+                <button
+                    onClick={openMobile}
+                    className="md:hidden p-1.5 -ml-1 text-neutral-500 hover:text-neutral-700 transition-colors"
+                    aria-label="Open menu"
+                >
+                    <Menu size={20} />
+                </button>
+                <span className="text-sm font-medium text-neutral-900 truncate max-w-[160px] sm:max-w-none">{org.name}</span>
+                <span className="badge text-xs hidden sm:inline-flex">{isAdmin ? 'admin' : 'client portal'}</span>
             </div>
 
             {/* User menu */}

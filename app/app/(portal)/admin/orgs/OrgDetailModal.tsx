@@ -168,10 +168,10 @@ export function OrgDetailModal({ org, open, onClose }: OrgDetailModalProps) {
 
     return (
         <Modal open={open} onClose={onClose} title={org.name}>
-            <div className="space-y-6 min-w-[400px]">
+            <div className="space-y-6">
                 {/* Org Info */}
                 <div className="bg-neutral-50 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                         <div>
                             <span className="text-neutral-500">Slug:</span>
                             <p className="font-mono">{org.slug}</p>

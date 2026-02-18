@@ -108,7 +108,7 @@ export function GraphicLibrary({ isOpen, onClose, onSelectIcon, currentColor }: 
                             <p className="text-neutral-400 text-xs mt-1">try a different search term</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-6 gap-3">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                             {filteredIcons.map((icon) => {
                                 const IconComponent = icon.component;
                                 return (

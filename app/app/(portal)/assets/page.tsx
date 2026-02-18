@@ -164,9 +164,9 @@ export default function AssetsPage() {
             </Card>
 
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
                 {/* Type filter */}
-                <div className="flex gap-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 min-w-0">
                     {typeFilters.map((t) => (
                         <button
                             key={t.value}
@@ -182,7 +182,7 @@ export default function AssetsPage() {
                 </div>
 
                 {/* View toggle */}
-                <div className="flex gap-1 bg-neutral-100 rounded-[var(--radius-sm)] p-1">
+                <div className="flex gap-1 bg-neutral-100 rounded-[var(--radius-sm)] p-1 shrink-0">
                     <button
                         onClick={() => setViewMode('grid')}
                         className={`p-1.5 rounded-[var(--radius-sm)] ${viewMode === 'grid' ? 'bg-white shadow-sm' : ''}`}

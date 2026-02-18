@@ -66,7 +66,7 @@ export default async function AdminPage() {
             />
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
                 <Link href="/app/admin/leads">
                     <StatsCard
                         label="Total Leads"
@@ -98,7 +98,7 @@ export default async function AdminPage() {
                 </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {/* Recent Leads */}
                 <Card>
                     <div className="flex items-center justify-between mb-4">

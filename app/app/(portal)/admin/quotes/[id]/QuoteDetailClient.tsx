@@ -15,6 +15,8 @@ interface QuoteDetailClientProps {
         panelMaterials: string[];
         panelFinishes: string[];
         finishRulesByType: Record<string, string[]>;
+        availableHeights?: number[];
+        letterPriceKeys?: string[];
     };
     itemId?: string;
     mode?: 'add-form' | 'item-actions';

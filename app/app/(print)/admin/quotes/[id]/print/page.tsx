@@ -238,6 +238,21 @@ export default async function QuotePrintPage({ params }: PageProps) {
                 .totals-box {
                     border: 2px solid #000;
                     padding: 16px 24px;
+                    min-width: 240px;
+                }
+                .totals-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: baseline;
+                    gap: 24px;
+                }
+                .totals-row + .totals-row {
+                    margin-top: 6px;
+                }
+                .totals-row.grand-total {
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    border-top: 1px solid #ddd;
                 }
                 .total-label {
                     font-size: 12px;
@@ -246,6 +261,11 @@ export default async function QuotePrintPage({ params }: PageProps) {
                     color: #666;
                 }
                 .total-value {
+                    font-size: 14px;
+                    font-weight: 600;
+                    text-align: right;
+                }
+                .total-value.grand {
                     font-size: 24px;
                     font-weight: 700;
                 }
@@ -332,6 +352,11 @@ export default async function QuotePrintPage({ params }: PageProps) {
                 <div className="quote-info">
                     <div className="quote-number">{quoteData.quote_number}</div>
                     <div className="quote-date">{formatDate(quoteData.created_at)}</div>
+                    {quoteData.valid_until && (
+                        <div className="quote-date" style={{ marginTop: '4px' }}>
+                            Valid until: {new Date(quoteData.valid_until).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -396,8 +421,18 @@ export default async function QuotePrintPage({ params }: PageProps) {
             {/* Totals */}
             <div className="totals-section">
                 <div className="totals-box">
-                    <div className="total-label">Total</div>
-                    <div className="total-value">{formatPence(grandTotal)}</div>
+                    <div className="totals-row">
+                        <div className="total-label">Subtotal (ex. VAT)</div>
+                        <div className="total-value">{formatPence(grandTotal)}</div>
+                    </div>
+                    <div className="totals-row">
+                        <div className="total-label">VAT (20%)</div>
+                        <div className="total-value">{formatPence(Math.round(grandTotal * 0.2))}</div>
+                    </div>
+                    <div className="totals-row grand-total">
+                        <div className="total-label">Total</div>
+                        <div className="total-value grand">{formatPence(grandTotal + Math.round(grandTotal * 0.2))}</div>
+                    </div>
                 </div>
             </div>
 
@@ -406,8 +441,8 @@ export default async function QuotePrintPage({ params }: PageProps) {
                 <div className="notes-title">Terms & Conditions</div>
                 <div className="notes-content">
                     <ul>
-                        <li>This quotation is valid for 30 days from the date shown above.</li>
-                        <li>All prices exclude VAT unless otherwise stated.</li>
+                        <li>This quotation is valid until {quoteData.valid_until ? new Date(quoteData.valid_until).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '30 days from the date shown above'}.</li>
+                        <li>All prices are shown excluding and including VAT at 20%.</li>
                         <li>Lead times will be confirmed upon order placement.</li>
                         <li>A 50% deposit is required to proceed with manufacturing.</li>
                         <li>Installation is quoted separately unless included in line items.</li>

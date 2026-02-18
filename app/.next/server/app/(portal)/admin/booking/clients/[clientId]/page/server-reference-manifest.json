@@ -1,0 +1,20 @@
+{
+  "node": {
+    "60cae267ea7cc7ba3e05d3fa89a43cd7854f3dd89f": {
+      "workers": {
+        "app/(portal)/admin/booking/clients/[clientId]/page": {
+          "moduleId": 78393,
+          "async": false,
+          "exportedName": "updateClient",
+          "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/(portal)/admin/booking/clients/[clientId]/page": "action-browser"
+      },
+      "exportedName": "updateClient",
+      "filename": "Documents/onesign-growth/app/app/(portal)/admin/booking/_lib/actions.ts"
+    }
+  },
+  "edge": {}
+}

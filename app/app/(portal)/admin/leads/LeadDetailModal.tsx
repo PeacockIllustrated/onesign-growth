@@ -46,7 +46,7 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange, onConvert
                     <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                         <User size={14} /> Contact
                     </h3>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         <div>
                             <span className="text-neutral-500">Name:</span>
                             <p className="font-medium text-neutral-900">{lead.contact_name}</p>
@@ -73,7 +73,7 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange, onConvert
                     <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                         <Building2 size={14} /> Business
                     </h3>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         <div>
                             <span className="text-neutral-500">Company:</span>
                             <p className="font-medium text-neutral-900">{lead.company_name}</p>
@@ -102,7 +102,7 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange, onConvert
                     <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                         <Briefcase size={14} /> Commercial
                     </h3>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         <div>
                             <span className="text-neutral-500">Avg Job Value:</span>
                             <p>{lead.avg_job_value || '—'}</p>

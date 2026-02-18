@@ -234,24 +234,23 @@ export function calculatePanelLettersV1(
         // LED count for aperture: grid of LEDs at 200mm spacing
         aperture_leds = Math.ceil(input.aperture.width_mm / 200) * Math.ceil(input.aperture.height_mm / 200);
 
-        // Find opal sheet size and price
-        let opalSheetSize: { width: number; height: number } | null = null;
-        let opalSheetCost = 0;
+        // Find optimal opal sheet size (lowest total cost across available sizes)
+        const aperture_area_m2 = (input.aperture.width_mm / 1000) * (input.aperture.height_mm / 1000);
 
         for (const [key, cost] of rateCard.opalByTypeAndSheetSize) {
             if (key.startsWith(`${input.aperture.opal_type}::`)) {
                 const sheetSizeStr = key.split('::')[1];
-                opalSheetSize = parseSheetSize(sheetSizeStr);
-                opalSheetCost = cost;
-                break;
-            }
-        }
+                const dims = parseSheetSize(sheetSizeStr);
+                if (!dims) continue;
 
-        if (opalSheetSize) {
-            const aperture_area_m2 = (input.aperture.width_mm / 1000) * (input.aperture.height_mm / 1000);
-            const opal_sheet_area_m2 = (opalSheetSize.width / 1000) * (opalSheetSize.height / 1000);
-            const opal_sheets_needed = Math.ceil(aperture_area_m2 / opal_sheet_area_m2);
-            opal_cost_pence = opal_sheets_needed * opalSheetCost;
+                const opal_sheet_area_m2 = (dims.width / 1000) * (dims.height / 1000);
+                const sheets_needed = Math.ceil(aperture_area_m2 / opal_sheet_area_m2);
+                const total_cost = sheets_needed * cost;
+
+                if (opal_cost_pence === 0 || total_cost < opal_cost_pence) {
+                    opal_cost_pence = total_cost;
+                }
+            }
         }
 
         aperture_led_cost_pence = aperture_leds * led_unit_cost;

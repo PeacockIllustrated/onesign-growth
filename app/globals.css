@@ -172,6 +172,16 @@
   color: #262626;
   border: 1px solid #e5e5e5;
 }
+/* Mobile sidebar slide-in */
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 200ms ease-out;
+}
+
 /* Presentation Mode Animation */
 @keyframes fadeOut {
   0% { opacity: 1; }

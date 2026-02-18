@@ -254,7 +254,7 @@ export function DesignSection({ component, jobId, thumbnailUrl }: DesignSectionP
                 </div>
 
                 {/* Dimensions */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label className="block text-xs font-medium text-neutral-700 mb-1">
                             width (mm) <span className="text-red-500">*</span>
@@ -317,7 +317,7 @@ export function DesignSection({ component, jobId, thumbnailUrl }: DesignSectionP
                                 remove
                             </button>
                         </div>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label className="block text-xs font-medium text-neutral-700 mb-1">
                                     width (mm) <span className="text-red-500">*</span>

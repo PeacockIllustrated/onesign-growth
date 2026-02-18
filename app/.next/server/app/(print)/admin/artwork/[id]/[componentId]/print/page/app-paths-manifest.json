@@ -1,0 +1,3 @@
+{
+  "/(print)/admin/artwork/[id]/[componentId]/print/page": "app/(print)/admin/artwork/[id]/[componentId]/print/page.js"
+}

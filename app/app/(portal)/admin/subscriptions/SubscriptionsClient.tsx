@@ -36,8 +36,8 @@ export function SubscriptionsClient({ orgs, subscriptions }: SubscriptionsClient
 
     return (
         <>
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex gap-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                <div className="flex gap-2 flex-wrap">
                     {statusFilters.map(s => (
                         <button
                             key={s}
@@ -53,7 +53,7 @@ export function SubscriptionsClient({ orgs, subscriptions }: SubscriptionsClient
                         </button>
                     ))}
                 </div>
-                <button onClick={() => setAssignOpen(true)} className="btn-primary flex items-center gap-2">
+                <button onClick={() => setAssignOpen(true)} className="btn-primary flex items-center gap-2 shrink-0">
                     <Plus size={16} />
                     Assign Package
                 </button>
