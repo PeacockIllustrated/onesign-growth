@@ -1,3 +1,0 @@
-{
-  "/(portal)/admin/booking/launchpad/[tenantId]/page": "app/(portal)/admin/booking/launchpad/[tenantId]/page.js"
-}
