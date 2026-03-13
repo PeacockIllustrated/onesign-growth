@@ -5,8 +5,10 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    turbo: {
+      enabled: false,
+    },
   },
-  turbo: false,
 };
 
 export default nextConfig;
